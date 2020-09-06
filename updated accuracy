@@ -1,0 +1,89 @@
+# Evaluating the  KNN Algorithm
+
+
+print(confusion_matrix(y_test, y_pred))
+print(classification_report(y_test, y_pred))
+
+[[115  15]
+ [ 22  40]]
+              precision    recall  f1-score   support
+
+           0       0.84      0.88      0.86       130
+           1       0.73      0.65      0.68        62
+
+    accuracy                           0.81       192
+   macro avg       0.78      0.76      0.77       192
+weighted avg       0.80      0.81      0.80       192
+-------------------------------------------------------
+
+# re-scaling the Standard Scaling using Scikit-Learn Library  ---- StandardScaler()
+
+df_model = df.copy()
+scaler = StandardScaler()
+features = [['Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI']]
+for feature in features:
+    df_model[feature] = scaler.fit_transform(df_model[feature])
+knn = KNeighborsClassifier()
+x = df_model.drop(columns=['Outcome'])
+y = df_model['Outcome']
+
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=4)
+
+knn.fit(x_train, y_train)
+
+---# predicting and accuracy before----
+
+y_pred = knn.predict(x_test)
+y_pred
+print(accuracy_score(y_test, y_pred))
+
+0.7012987012987013  -----1st accuracy
+
+----To get optimal performance, I used GridCV to Tune Hyperparameters of my KNN model----
+leaf_size = list(range(1,50))
+n_neighbors = list(range(1,30))
+p=[1,2]
+
+from sklearn.model_selection import GridSearchCV
+
+hyperparameters = dict(leaf_size=leaf_size, n_neighbors=n_neighbors, p=p)
+
+clf = GridSearchCV(knn, hyperparameters, cv=10)
+best_model = clf.fit(x_train,y_train)
+
+print('Best leaf_size:', best_model.best_estimator_.get_params()['leaf_size'])
+print('Best p:', best_model.best_estimator_.get_params()['p'])
+print('Best n_neighbors:', best_model.best_estimator_.get_params()['n_neighbors'])
+
+OUTPUT:
+Best leaf_size: 1
+Best p: 2
+Best n_neighbors: 3
+
+-------
+y_pred = best_model.predict(x_test)
+y_pred
+array([1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1,
+       0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1,
+       0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0,
+       0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0,
+       0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1,
+       0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
+       0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+      dtype=int64)
+      
+   ********************************
+   # increased accuracy from 0.7012 to 0.7077
+
+print(accuracy_score(y_test, y_pred))
+      OUTPUT:    0.7077922077922078
+      
+      
+Different ways to achieve the increased accuracy:
+-- adding more data to the file. It will result in different prediction and accuracy
+-- Taking outliers and missing values. This will add the redundancies thus makes our data more efficient
+-- Multiple alogirthm techniques to get the output of dataset.The accuracy score is dependent on each algorithm and their predictions
+
+
+
+
